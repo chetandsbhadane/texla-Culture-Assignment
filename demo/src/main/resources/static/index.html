@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Expense Upload</title>
+</head>
+<body>
+    <h1>Expense Upload</h1>
+    <form id="expenseForm">
+        <label for="category">Category:</label>
+        <input type="text" id="category" name="category" required><br><br>
+
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" name="amount" required><br><br>
+
+        <label for="pdf">Expense PDF:</label>
+        <input type="file" id="pdf" name="pdf" accept=".pdf" required><br><br>
+
+        <button type="submit" id="submitBtn">Submit Expense</button>
+    </form>
+
+    <div id="response"></div>
+
+    <iframe id="pdfViewer" width="100%" height="600"></iframe>
+
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+    <script>
+        const form = document.getElementById('expenseForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const responseDiv = document.getElementById('response');
+        const pdfViewer = document.getElementById('pdfViewer');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const category = document.getElementById('category').value;
+            const amount = document.getElementById('amount').value;
+            const pdf = document.getElementById('pdf').files[0];
+
+            const formData = new FormData();
+            formData.append('category', category);
+            formData.append('amount', amount);
+            formData.append('pdf', pdf);
+
+            try {
+                const response = await fetch('http://localhost:9005/expenses/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.status === 201) {
+                    responseDiv.textContent = 'Expense successfully submitted.';
+                    
+                    // Display the PDF in the iframe
+                    const fileURL = URL.createObjectURL(pdf);
+                    pdfViewer.src = fileURL;
+                } else {
+                    responseDiv.textContent = 'Failed to submit expense.';
+                }
+            } catch (error) {
+                console.error(error);
+                responseDiv.textContent = 'An error occurred while submitting the expense.';
+            }
+        });
+    </script>
+</body>
+</html>
